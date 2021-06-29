@@ -7,6 +7,7 @@ metadata:
   labels:
     {{- include "fairwinds-insights.labels" . | nindent 4 }}
     app.kubernetes.io/component: ingress-api
+    nothing: toseehere
   annotations:
     {{ with .Values.ingress.annotations }}
     {{- toYaml . | nindent 4 }}
