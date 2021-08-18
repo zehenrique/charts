@@ -34,8 +34,8 @@ cronjobs:
 
 cronjobExecutor:
   image:
-    repository: curlimages/curl
-    tag: "7.77.0"
+    repository: alpine
+    tag: "3.14"
   resources:
     limits:
       cpu: 100m
