@@ -62,6 +62,9 @@ options:
 # -- Additional Environment Variables to set on the Fairwinds Insights pods.
 additionalEnvironmentVariables: {}
 
+defaultSecurityContext:
+  runAsUser: 10324
+
 rbac:
   serviceAccount:
     # -- Annotations to add to the service account

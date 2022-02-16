@@ -31,7 +31,7 @@ spec:
               allowPrivilegeEscalation: false
               privileged: false
               runAsNonRoot: true
-              runAsUser: 10324
+              runAsUser: {{ .Values.defaultSecurityContext.runAsUser }}
               capabilities:
                 drop:
                   - ALL
@@ -69,7 +69,7 @@ spec:
         resources:
           {{- toYaml .Values.cronjobExecutor.resources | nindent 10 }}
         securityContext:
-          runAsUser: 1000
+          runAsUser: {{ .Values.defaultSecurityContext.runAsUser }}
           readOnlyRootFilesystem: true
           allowPrivilegeEscalation: false
           privileged: false
