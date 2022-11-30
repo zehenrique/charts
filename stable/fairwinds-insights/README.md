@@ -23,16 +23,16 @@ See [insights.docs.fairwinds.com](https://insights.docs.fairwinds.com/technical-
 | migrationImage.tag | string | `nil` | Overrides tag for the migration image, defaults to image.tag |
 | cronjobImage.repository | string | `"quay.io/fairwinds/insights-cronjob"` | Docker image repository for maintenance CronJobs. |
 | cronjobImage.tag | string | `nil` | Overrides tag for the cronjob image, defaults to image.tag |
-| openApiImage.repository | string | `"swaggerapi/swagger-ui"` | Docker image repository for the openAPI server |
-| openApiImage.tag | string | `"v4.1.3"` | Overrides tag for the openAPI server, defaults to image.tag |
-| options.agentChartTargetVersion | string | `"2.0.1"` | Which version of the Insights Agent is supported by this version of Fairwinds Insights |
+| openApiImage.repository | string | `"swaggerapi/swagger-ui"` | Docker image repository for the Open API server |
+| openApiImage.tag | string | `"v4.1.3"` | Overrides tag for the Open API server, defaults to image.tag |
+| options.agentChartTargetVersion | string | `"2.8.1"` | Which version of the Insights Agent is supported by this version of Fairwinds Insights |
 | options.insightsSAASHost | string | `"https://insights.fairwinds.com"` | Do not change, this is the hostname that Fairwinds Insights will reach out to for license verification. |
 | options.allowHTTPCookies | bool | `false` | Allow cookies to work over HTTP instead of requiring HTTPS. This generally should not be changed. |
 | options.dashboardConfig | string | `"config.self.js"` | Configuration file to use for the front-end. This generally should not be changed. |
 | options.adminEmail | string | `nil` | An email address for the first admin user. This account will get created automatically but without a known password. You must initiate a password reset in order to login to this account. |
 | options.organizationName | string | `nil` | The name of your organization. This will pre-populate Insights with an organization. |
 | options.autogenerateKeys | bool | `false` | Autogenerate keys for session tracking. For testing/demo purposes only |
-| options.migrateHealthScore | bool | `true` | Run the job to migrate health scores to a new format |
+| options.migrateHealthScore | bool | `false` | Run the job to migrate health scores to a new format |
 | options.secretName | string | `"fwinsights-secrets"` | Name of the secret where session keys and other secrets are stored |
 | options.overprovisioning.enabled | bool | `false` |  |
 | options.overprovisioning.memory | string | `"1Gi"` |  |
@@ -71,16 +71,20 @@ See [insights.docs.fairwinds.com](https://insights.docs.fairwinds.com/technical-
 | api.nodeSelector | object | `{}` | Node Selector for the API server. |
 | api.tolerations | list | `[]` | Tolerations for the API server. |
 | api.securityContext.runAsUser | int | `10324` | The user ID to run the API server under. |
-| openApi.port | int | `8080` | Port for the openAPI server to listen on. |
-| openApi.pdb.enabled | bool | `false` | Create a pod disruption budget for the openAPI server. |
-| openApi.pdb.minReplicas | int | `1` | How many replicas should always exist for the openAPI server. |
-| openApi.hpa.enabled | bool | `false` | Create a horizontal pod autoscaler for the openAPI server. |
-| openApi.hpa.min | int | `1` | Minimum number of replicas for the openAPI server. |
-| openApi.hpa.max | int | `2` | Maximum number of replicas for the openAPI server. |
+| api.ingress.enabled | bool | `true` | Enable the Open API ingress |
+| api.service.type | string | `nil` | Service type for Open API server |
+| openApi.port | int | `8080` | Port for the Open API server to listen on. |
+| openApi.pdb.enabled | bool | `false` | Create a pod disruption budget for the Open API server. |
+| openApi.pdb.minReplicas | int | `1` | How many replicas should always exist for the Open API server. |
+| openApi.hpa.enabled | bool | `false` | Create a horizontal pod autoscaler for the Open API server. |
+| openApi.hpa.min | int | `2` | Minimum number of replicas for the Open API server. |
+| openApi.hpa.max | int | `3` | Maximum number of replicas for the Open API server. |
 | openApi.hpa.metrics | list | `[{"resource":{"name":"cpu","target":{"averageUtilization":75,"type":"Utilization"}},"type":"Resource"},{"resource":{"name":"memory","target":{"averageUtilization":75,"type":"Utilization"}},"type":"Resource"}]` | Scaling metrics |
-| openApi.resources | object | `{"limits":{"cpu":"256m","memory":"256Mi"},"requests":{"cpu":"100m","memory":"100Mi"}}` | Resources for the openAPI server. |
-| openApi.nodeSelector | object | `{}` | Node Selector for the openAPI server. |
-| openApi.tolerations | list | `[]` | Tolerations for the openApi server. |
+| openApi.resources | object | `{"limits":{"cpu":"256m","memory":"256Mi"},"requests":{"cpu":"100m","memory":"100Mi"}}` | Resources for the Open API server. |
+| openApi.nodeSelector | object | `{}` | Node Selector for the Open API server. |
+| openApi.tolerations | list | `[]` | Tolerations for the Open API server. |
+| openApi.ingress.enabled | bool | `true` | Enable the Open API ingress |
+| openApi.service.type | string | `nil` | Service type for Open API server |
 | dbMigration.resources | object | `{"limits":{"cpu":1,"memory":"1024Mi"},"requests":{"cpu":"80m","memory":"128Mi"}}` | Resources for the database migration job. |
 | dbMigration.securityContext.runAsUser | int | `10324` | The user ID to run the database migration job under. |
 | samlCronjob.resources | object | `{"limits":{"cpu":"500m","memory":"1024Mi"},"requests":{"cpu":"80m","memory":"128Mi"}}` | Resources for the SAML sync job. |
@@ -92,12 +96,20 @@ See [insights.docs.fairwinds.com](https://insights.docs.fairwinds.com/technical-
 | aggregateCronjob.schedules | list | `[{"cron":"5 0/2 * * *","interval":"120m","name":"bi-hourly"}]` | CRON schedules for the Workload Metrics aggregation job. |
 | aggregateCronjob.securityContext.runAsUser | int | `10324` | The user ID to run the Workload Metrics aggregation job under. |
 | emailCronjob.resources | object | `{"limits":{"cpu":"500m","memory":"1024Mi"},"requests":{"cpu":"80m","memory":"128Mi"}}` | Resources for the Action Items email job. |
-| emailCronjob.schedules | list | `[{"cron":"0 16 * * 1","interval":"168h","name":"weekly-email"}]` | CRON schedules for the Action Items email job. |
+| emailCronjob.schedules | list | `[]` | CRON schedules for the Action Items email job. |
 | emailCronjob.securityContext.runAsUser | int | `10324` | The user ID to run the email job under. |
 | databaseCleanupCronjob.enabled | bool | `true` | Enable database cleanup true by default |
 | databaseCleanupCronjob.resources | object | `{"limits":{"cpu":"500m","memory":"1024Mi"},"requests":{"cpu":"80m","memory":"128Mi"}}` | Resources for the database cleanup job. |
 | databaseCleanupCronjob.schedules | list | `[{"cron":"0 0 * * *","interval":"24h","name":"database-cleanup"}]` | CRON schedules for the database cleanup job. |
 | databaseCleanupCronjob.securityContext.runAsUser | int | `10324` | The user ID to run the database cleanup job under. |
+| resourcesRecommendationsCronjob.enabled | bool | `true` | Enable resources recommendations true by default |
+| resourcesRecommendationsCronjob.resources | object | `{"limits":{"cpu":1,"memory":"3Gi"},"requests":{"cpu":1,"memory":"3Gi"}}` | Resources for the resources recommendations job. |
+| resourcesRecommendationsCronjob.schedules | list | `[{"cron":"0 2 * * *","interval":"24h","name":"resources-recommendations"}]` | CRON schedules for the resources recommendations job. |
+| resourcesRecommendationsCronjob.securityContext.runAsUser | int | `10324` | The user ID to run the resources recommendations job under. |
+| closeTicketsCronjob.enabled | bool | `true` | Close tickets enabled by default |
+| closeTicketsCronjob.resources | object | `{"limits":{"cpu":"500m","memory":"2Gi"},"requests":{"cpu":"500m","memory":"1.5Gi"}}` | Resources for the close tickets job. |
+| closeTicketsCronjob.schedules | list | `[{"cron":"0/15 * * * *","name":"close-tickets"}]` | CRON schedules for the close tickets job. |
+| closeTicketsCronjob.securityContext.runAsUser | int | `10324` | The user ID to run the close tickets job under. |
 | truncateWorkloadMetrics.enabled | bool | `false` | Enable truncating workload metrics false by default |
 | truncateWorkloadMetrics.resources | object | `{"limits":{"cpu":"250m","memory":"512Mi"},"requests":{"cpu":"40m","memory":"32Mi"}}` | Resources for the truncating workload metrics job. |
 | truncateWorkloadMetrics.schedules | list | `[]` | CRON schedules for the truncating workload metrics job. |
@@ -122,22 +134,22 @@ See [insights.docs.fairwinds.com](https://insights.docs.fairwinds.com/technical-
 | postgresql.persistence.enabled | bool | `true` | Create Persistent Volume with Postgres |
 | postgresql.replication.enabled | bool | `false` | Replicate Postgres data |
 | postgresql.resources | object | `{"limits":{"cpu":1,"memory":"1Gi"},"requests":{"cpu":"75m","memory":"256Mi"}}` | Resources section for Postgres |
-| timescale.replicaCount | int | `1` |  |
+| encryption.aes.cypherKey | string | `nil` |  |
+| timescale.replicaCount | int | `2` |  |
 | timescale.clusterName | string | `"timescale"` |  |
 | timescale.ephemeral | bool | `true` | Use the ephemeral Timescale chart by default |
+| timescale.pdb.enabled | bool | `true` | Use pdb enabled by default |
+| timescale.pdb.minReplicas | int | `1` | Min timescale pdb replicas |
 | timescale.sslMode | string | `"require"` | SSL mode for connecting to the database |
+| timescale.postgresqlHost | string | `"timescale"` | Host for timescale |
 | timescale.postgresqlUsername | string | `"postgres"` | Username to connect to Timescale with |
-| timescale.postgresqlDatabase | string | `"fairwinds_timescale"` | Name of the Postgres Database |
+| timescale.postgresqlDatabase | string | `"postgres"` | Name of the Postgres Database |
+| timescale.password | string | `"postgres"` | Password for the Postgres Database |
 | timescale.secrets.certificateSecretName | string | `"fwinsights-timescale-ca"` |  |
 | timescale.secrets.credentialsSecretName | string | `"fwinsights-timescale"` |  |
 | timescale.service.primary | object | `{"port":5433}` | Port of the Timescale Database |
-| timescale.persistence.enabled | bool | `true` | Create Persistent Volume with Timescale |
-| timescale.replication.enabled | bool | `false` | Replicate Timescale data |
 | timescale.loadBalancer.enabled | bool | `false` |  |
-| timescale.resources.limits.cpu | int | `1` |  |
-| timescale.resources.limits.memory | string | `"1Gi"` |  |
-| timescale.resources.requests.cpu | string | `"75m"` |  |
-| timescale.resources.requests.memory | string | `"256Mi"` |  |
+| timescale.resources | object | `{"limits":{"cpu":1,"memory":"1Gi"},"requests":{"cpu":"75m","memory":"256Mi"}}` | Resources section for Timescale |
 | email.strategy | string | `"memory"` | How to send emails, valid values include memory, ses, and smtp |
 | email.sender | string | `nil` | Email address that emails will come from |
 | email.recipient | string | `nil` | Email address to send notifications of new user signups. |
@@ -165,6 +177,7 @@ See [insights.docs.fairwinds.com](https://insights.docs.fairwinds.com/technical-
 | cronjobExecutor.resources.limits.memory | string | `"64Mi"` |  |
 | cronjobExecutor.resources.requests.cpu | string | `"1m"` |  |
 | cronjobExecutor.resources.requests.memory | string | `"3Mi"` |  |
+| reportjob.enabled | bool | `true` |  |
 | reportjob.pdb.enabled | bool | `true` |  |
 | reportjob.pdb.minReplicas | int | `1` |  |
 | reportjob.hpa.enabled | bool | `true` |  |
@@ -185,7 +198,7 @@ See [insights.docs.fairwinds.com](https://insights.docs.fairwinds.com/technical-
 | reportjob.nodeSelector | object | `{}` |  |
 | reportjob.tolerations | list | `[]` |  |
 | repoScanJob.enabled | bool | `false` |  |
-| repoScanJob.insightsCIVersion | string | `"1.2"` |  |
+| repoScanJob.insightsCIVersion | string | `"2.1"` |  |
 | repoScanJob.hpa.enabled | bool | `true` |  |
 | repoScanJob.hpa.min | int | `2` |  |
 | repoScanJob.hpa.max | int | `6` |  |

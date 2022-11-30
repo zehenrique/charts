@@ -61,18 +61,20 @@ Parameter | Description | Default
 `insights.host` | The location of the Insights server | https://insights.fairwinds.com
 `rbac.disabled` | Don't use any of the built-in RBAC | `false`
 `fleetInstall` | See Fleet Installation docs | `false`
+`global.proxy.http` | Annotations used to access the proxy servers(http) | ""
+`global.proxy.https` | Annotations used to access the proxy servers(https) | ""
+`global.proxy.ftp` | Annotations used to access the proxy servers(ftp) | ""
+`global.proxy.no_proxy` | Annotations to provides a way to exclude traffic destined to certain hosts from using the proxy | ""
 `insights.apiToken` | Only needed if `fleetInstall=true` | ""
-`proxy.http` | Annotations used to access the proxy servers(http) | ""
-`proxy.https` | Annotations used to access the proxy servers(https) | ""
-`proxy.ftp` | Annotations used to access the proxy servers(ftp) | ""
-`proxy.no_proxy` | Annotations to provides a way to exclude traffic destined to certain hosts from using the proxy | ""
 `uploader.image.repository`  | The repository to pull the uploader script from | quay.io/fairwinds/insights-uploader
+`uploader.imagePullSecret` | A pull secret for a private uploader image
 `uploader.image.tag` | The tag to use for the uploader script | 0.2
 `uploader.resources` | CPU/memory requests and limits for the uploader script |
 `uploader.sendFailures` | Send logs of failure to Insights when a job fails. | true
 `uploader.env` | Set extra environment variables for the uploader script | []
 `cronjobs.disableServiceMesh` | Adds annotations to all CronJobs to not inject Linkerd or Istio | true
 `cronjobs.backoffLimit` | Backoff limit to use for each report CronJob | 1
+`cronjobs.imagePullSecret` | A pull secret for cronjob images
 `cronjobs.failedJobsHistoryLimit` | Number of failed jobs to keep in history for each report | 2
 `cronjobs.successfulJobsHistoryLimit` | Number of successful jobs to keep in history for each report | 2
 `cronjobs.nodeSelector` | Node selector to use for cronjobs | null
@@ -84,8 +86,11 @@ Parameter | Description | Default
 `{report}.schedule` | Cron expression for running the report | `rand * * * *`
 `{report}.timeout` | Maximum time in seconds to wait for the report |
 `{report}.resources` | CPU/memory requests and limits for the report |
+`{report}.securityContext` | Additional securityContext field in the Pod specification(PodSecurityContext) for the report |
 `{report}.image.repository` | Repository to use for the report image |
 `{report}.image.tag` | Image tag to use for the report |
+`{report}.securityContext` | Pod securityContext for the CronJob | {}
+`{report}.containerSecurityContext` | Container securityContext for the CronJob | {}
 `polaris.config` | A custom [polaris configuration](https://polaris.docs.fairwinds.com/customization/configuration/)
 `polaris.extraArgs` | A string of custom arguments to pass to the polaris CLI, e.g. `--disallow-annotation-exemptions=true` | 
 `kube-hunter.logLevel` | DEFAULT, INFO, or WARNING | `INFO`
@@ -99,6 +104,7 @@ Parameter | Description | Default
 `trivy.maxScansPerRun` | Maximum number of images to scan on a single run | 20
 `trivy.namespaceBlacklist` | Specifies which namespaces to not scan, takes an array of namespaces for example: `--set trivy.namespaceBlacklist="{kube-system,default}"` | nil
 `trivy.serviceAccount.annotations` | Annotations to add to the Trivy service account, e.g. `eks.amazonaws.com/role-arn: arn:aws:iam::ACCOUNT_ID:role/IAM_ROLE_NAME` for accessing private images | nil
+`trivy.env` | A map of environment variables that will be set for the trivy container. | `nil`
 `opa.role` | Specifies which ClusterRole to grant the OPA agent access to | view
 `opa.additionalAccess` | Specifies additional access to grant the OPA agent. This should contain an array of objects with each having an array of apiGroups, an array of resources, and an array of verbs. Just like a RoleBinding. | null
 `insights-agent` chart twice you will want to set this flag to `false` on *one* of the installs, doesn't matter which. | true
@@ -162,7 +168,7 @@ falcosidekick:
   fullfqdn: true
   config:
     webhook:
-      address: "http://falco-agent:3031/data"
+      address: "http://falco-agent.insights-agent:3031/data"
 ```
 
 #### Behavior changes

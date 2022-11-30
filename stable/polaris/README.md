@@ -49,10 +49,13 @@ the 0.10.0 version of this chart will only work on kubernetes 1.14.0+
 | dashboard.port | int | `8080` | Port that the dashboard will run from. |
 | dashboard.listeningAddress | string | `nil` | Dashboard listerning address. |
 | dashboard.replicas | int | `2` | Number of replicas to run. |
+| dashboard.logLevel | string | `"Info"` | Set the logging level for the Dashboard command |
 | dashboard.podAdditionalLabels | object | `{}` | Custom additional labels on dashboard pods. |
 | dashboard.resources | object | `{"limits":{"cpu":"150m","memory":"512Mi"},"requests":{"cpu":"100m","memory":"128Mi"}}` | Requests and limits for the dashboard |
+| dashboard.extraContainers | list | `[]` | allows injecting additional containers. |
 | dashboard.service.type | string | `"ClusterIP"` | Service Type |
 | dashboard.service.annotations | object | `{}` | Service annotations |
+| dashboard.service.targetPort | string | `nil` | Service targetport, defaults to dashboard.port |
 | dashboard.nodeSelector | object | `{}` | Dashboard pod nodeSelector |
 | dashboard.tolerations | list | `[]` | Dashboard pod tolerations |
 | dashboard.affinity | object | `{}` | Dashboard pods affinity |
@@ -65,7 +68,10 @@ the 0.10.0 version of this chart will only work on kubernetes 1.14.0+
 | dashboard.disallowExemptions | bool | `false` | Disallow any exemption |
 | dashboard.disallowConfigExemptions | bool | `false` | Disallow exemptions that are configured in the config file |
 | dashboard.disallowAnnotationExemptions | bool | `false` | Disallow exemptions that are configured via annotations |
-| webhook.enable | bool | `false` | Whether to run the Validating Webhook |
+| dashboard.containerSecurityContext | object | `{"allowPrivilegeEscalation":false,"capabilities":{"drop":["ALL"]},"privileged":false,"readOnlyRootFilesystem":true,"runAsNonRoot":true}` | securityContext to apply to the dashboard container |
+| webhook.enable | bool | `false` | Whether to run the webhook |
+| webhook.validate | bool | `true` | Enables the Validating Webhook, to reject resources with issues |
+| webhook.mutate | bool | `false` | Enables the Mutating Webhook, to modify resources with issues |
 | webhook.replicas | int | `2` | Number of replicas |
 | webhook.nodeSelector | object | `{}` | Webhook pod nodeSelector |
 | webhook.tolerations | list | `[]` | Webhook pod tolerations |
@@ -76,7 +82,8 @@ the 0.10.0 version of this chart will only work on kubernetes 1.14.0+
 | webhook.matchPolicy | string | `"Exact"` | matchPolicy for the ValidatingWebhookConfiguration |
 | webhook.namespaceSelector | object | `{"matchExpressions":[{"key":"control-plane","operator":"DoesNotExist"}]}` | namespaceSelector for the ValidatingWebhookConfiguration |
 | webhook.objectSelector | object | `{}` | objectSelector for the ValidatingWebhookConfiguration |
-| webhook.rules | list | `[]` | An array of additional for the ValidatingWebhookConfiguration. Each requires a set of apiGroups, apiVersions, operations, resources, and a scope. |
+| webhook.rules | list | `[]` | An array of additional rules for the ValidatingWebhookConfiguration. Each requires a set of apiGroups, apiVersions, operations, resources, and a scope. |
+| webhook.mutatingRules | list | `[]` | An array of additional rules for the MutatingWebhookConfiguration. Each requires a set of apiGroups, apiVersions, operations, resources, and a scope. |
 | webhook.defaultRules | list | `[{"apiGroups":["apps"],"apiVersions":["v1","v1beta1","v1beta2"],"operations":["CREATE","UPDATE"],"resources":["daemonsets","deployments","statefulsets"],"scope":"Namespaced"},{"apiGroups":["batch"],"apiVersions":["v1","v1beta1"],"operations":["CREATE","UPDATE"],"resources":["jobs","cronjobs"],"scope":"Namespaced"},{"apiGroups":[""],"apiVersions":["v1"],"operations":["CREATE","UPDATE"],"resources":["pods","replicationcontrollers"],"scope":"Namespaced"}]` | An array of rules for common types for the ValidatingWebhookConfiguration |
 | webhook.podAdditionalLabels | object | `{}` | Custom additional labels on webhook pods. |
 | webhook.resources | object | `{"limits":{"cpu":"100m","memory":"128Mi"},"requests":{"cpu":"100m","memory":"128Mi"}}` | Requests and limits for the webhook. |

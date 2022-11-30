@@ -1,3 +1,14 @@
+global:
+  proxy:
+    # global.proxy.http -- Annotations used to access the proxy servers(http).
+    http:
+    # global.proxy.https -- Annotations used to access the proxy servers(https).
+    https:
+    # global.proxy.ftp -- Annotations used to access the proxy servers(ftp).
+    ftp:
+    # global.proxy.no_proxy -- Annotations to provides a way to exclude traffic destined to certain hosts from using the proxy.
+    no_proxy:
+
 insights:
   # insights.organization -- The name of your Organization from Fairwinds Insights
   organization: ""
@@ -36,6 +47,8 @@ webhookConfig:
     matchExpressions:
     - key: control-plane
       operator: DoesNotExist
+  # -- Annotations to add to the ValidatingWebhookConfiguration
+  annotations: {}
   # webhookConfig.objectSelector -- objectSelector for the ValidatingWebhookConfiguration
   objectSelector: {}
   # webhookConfig.rules -- An array of additional rules for the ValidatingWebhookConfiguration. Each requires a set of apiGroups, apiVersions, operations, resources, and a scope.
@@ -85,6 +98,14 @@ webhookConfig:
   # This *does not* impact RBAC rules added for `defaultRules`.
   rulesAutoRBAC: true
 
+pluto:
+  # pluto.targetVersions -- Pluto target versions specified as key=value[,key=value...].
+  # These supersede all defaults in Pluto version files.
+  # If unset, the `k8s` component will use the current Kubernetes cluster version.
+  # For example: k8s=v1.20.0,cert-manager=v1.8.0
+  targetVersions: ""
+
+    #
 # resources -- A resources block for the controller.
 resources:
   limits:
@@ -172,6 +193,9 @@ service:
   port: 443
   # service.usePod443 -- Force binding to port 443 on pods. This is useful for GKE private clusters. Requires running as root
   usePod443: false
+
+# ignoreRequestUsernames -- Specify a comma-separated list of usernames whos admission-requests will be ignored. This is useful for automation that regularly updates in-cluster resources.
+ignoreRequestUsernames: "system:addon-manager"
 
 # nodeSelector -- nodSelector to add to the controller.
 nodeSelector: {}

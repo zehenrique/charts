@@ -2,15 +2,18 @@ image:
   # The image repository to use
   repository: 602401143452.dkr.ecr.us-west-2.amazonaws.com/amazon/aws-iam-authenticator
   # The image tag to use
-  tag: v0.5.3-scratch
+  tag: v0.5.9
+
+## -- A priority class to assign to the pods
+priorityClassName: "system-cluster-critical"
 
 volumes:
   output:
     mountPath: /etc/kubernetes/aws-iam-authenticator/
-    hostPath: /srv/kubernetes/aws-iam-authenticator/
+    hostPath: /srv/kubernetes/kube-apiserver/aws-iam-authenticator/
   state:
     mountPath: /var/aws-iam-authenticator/
-    hostPath: /srv/kubernetes/aws-iam-authenticator/
+    hostPath: /srv/kubernetes/kube-apiserver/aws-iam-authenticator/
   config:
     mountPath: /etc/aws-iam-authenticator/
 

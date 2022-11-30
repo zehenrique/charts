@@ -10,7 +10,6 @@ ingress:
 options:
   insightsSAASHost: "https://staging.k8s.insights.fairwinds.com"
   autogenerateKeys: true
-  migrateHealthScore: false
 
 deployments:
   additionalLabels:
@@ -21,19 +20,6 @@ deployments:
 postgresql:
   sslMode: "disable"
   password: "changeme"
-
-timescale:
-  ephemeral: true
-  enabled: true
-  password: postgres
-  postgresqlHost: timescale
-  postgresqlDatabase: postgres
-  persistence:
-    enabled: false
-  service:
-    port: 5433
-  replica:
-    port: 5433
 
 dashboard:
   pdb:
@@ -72,6 +58,13 @@ emailCronjob:
 
 databaseCleanupCronjob:
   enabled: true
+  schedules: []
+
+resourcesRecommendationsCronjob:
+  enabled: true
+  schedules: []
+
+closeTicketsCronjob:
   schedules: []
 
 minio:

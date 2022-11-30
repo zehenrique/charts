@@ -38,15 +38,15 @@ cronjobImage:
   # -- Overrides tag for the cronjob image, defaults to image.tag
   tag:
 openApiImage:
-  # -- Docker image repository for the openAPI server
+  # -- Docker image repository for the Open API server
   repository: swaggerapi/swagger-ui
-  # -- Overrides tag for the openAPI server, defaults to image.tag
+  # -- Overrides tag for the Open API server, defaults to image.tag
   tag: v4.1.3  # NOTE: if you're changing this, be sure to look at templates/openapi-nginx-conf.yaml
 
 
 options:
   # -- Which version of the Insights Agent is supported by this version of Fairwinds Insights
-  agentChartTargetVersion: 2.0.1
+  agentChartTargetVersion: 2.8.1
   # -- Do not change, this is the hostname that Fairwinds Insights will reach out to for license verification.
   insightsSAASHost: "https://insights.fairwinds.com"
   # -- Allow cookies to work over HTTP instead of requiring HTTPS. This generally should not be changed.
@@ -60,7 +60,7 @@ options:
   # -- Autogenerate keys for session tracking. For testing/demo purposes only
   autogenerateKeys: false
   # -- Run the job to migrate health scores to a new format
-  migrateHealthScore: true
+  migrateHealthScore: false
   # -- Name of the secret where session keys and other secrets are stored
   secretName: fwinsights-secrets
 
@@ -189,22 +189,28 @@ api:
   securityContext:
     # -- The user ID to run the API server under.
     runAsUser: 10324
+  ingress:
+    # -- Enable the Open API ingress
+    enabled: true
+  service:
+    # -- Service type for Open API server
+    type:
 
 openApi:
-  # -- Port for the openAPI server to listen on.
+  # -- Port for the Open API server to listen on.
   port: 8080
   pdb:
-    # -- Create a pod disruption budget for the openAPI server.
+    # -- Create a pod disruption budget for the Open API server.
     enabled: false
-    # -- How many replicas should always exist for the openAPI server.
+    # -- How many replicas should always exist for the Open API server.
     minReplicas: 1
   hpa:
-    # -- Create a horizontal pod autoscaler for the openAPI server.
+    # -- Create a horizontal pod autoscaler for the Open API server.
     enabled: false
-    # -- Minimum number of replicas for the openAPI server.
-    min: 1
-    # -- Maximum number of replicas for the openAPI server.
-    max: 2
+    # -- Minimum number of replicas for the Open API server.
+    min: 2
+    # -- Maximum number of replicas for the Open API server.
+    max: 3
     # -- Scaling metrics
     metrics:
     - type: Resource
@@ -219,7 +225,7 @@ openApi:
         target:
           type: Utilization
           averageUtilization: 75
-  # -- Resources for the openAPI server.
+  # -- Resources for the Open API server.
   resources:
     limits:
       cpu: 256m
@@ -227,10 +233,16 @@ openApi:
     requests:
       cpu: 100m
       memory: 100Mi
-  # -- Node Selector for the openAPI server.
+  # -- Node Selector for the Open API server.
   nodeSelector: {}
-  # -- Tolerations for the openApi server.
+  # -- Tolerations for the Open API server.
   tolerations: []
+  ingress:
+    # -- Enable the Open API ingress
+    enabled: true
+  service:
+    # -- Service type for Open API server
+    type:
 
 dbMigration:
   # -- Resources for the database migration job.
@@ -311,10 +323,7 @@ emailCronjob:
       cpu: 80m
       memory: 128Mi
   # -- CRON schedules for the Action Items email job.
-  schedules:
-    - name: weekly-email
-      interval: 168h
-      cron: "0 16 * * 1"
+  schedules: []
   securityContext:
     # -- The user ID to run the email job under.
     runAsUser: 10324
@@ -337,6 +346,45 @@ databaseCleanupCronjob:
       cron: "0 0 * * *"
   securityContext:
     # -- The user ID to run the database cleanup job under.
+    runAsUser: 10324
+
+resourcesRecommendationsCronjob:
+  # -- Enable resources recommendations true by default
+  enabled: true
+  # -- Resources for the resources recommendations job.
+  resources:
+    limits:
+      cpu: 1
+      memory: 3Gi
+    requests:
+      cpu: 1
+      memory: 3Gi
+  # -- CRON schedules for the resources recommendations job.
+  schedules:
+    - name: resources-recommendations
+      interval: 24h
+      cron: "0 2 * * *"
+  securityContext:
+    # -- The user ID to run the resources recommendations job under.
+    runAsUser: 10324
+
+closeTicketsCronjob:
+  # -- Close tickets enabled by default
+  enabled: true
+  # -- Resources for the close tickets job.
+  resources:
+    limits:
+      cpu: 500m
+      memory: 2Gi
+    requests:
+      cpu: 500m
+      memory: 1.5Gi
+  # -- CRON schedules for the close tickets job.
+  schedules:
+    - name: close-tickets
+      cron: "0/15 * * * *"
+  securityContext:
+    # -- The user ID to run the close tickets job under.
     runAsUser: 10324
 
 truncateWorkloadMetrics:
@@ -412,17 +460,30 @@ postgresql:
       cpu: 75m
       memory: 256Mi
 
+encryption:
+  aes:
+    cypherKey:
+
 timescale:
-  replicaCount: 1
+  replicaCount: 2
   clusterName: timescale
   # -- Use the ephemeral Timescale chart by default
   ephemeral: true
+  pdb:
+    # -- Use pdb enabled by default
+    enabled: true
+    # -- Min timescale pdb replicas
+    minReplicas: 1
   # -- SSL mode for connecting to the database
   sslMode: require
-    # -- Username to connect to Timescale with
+  # -- Host for timescale
+  postgresqlHost: timescale
+  # -- Username to connect to Timescale with
   postgresqlUsername: postgres
   # -- Name of the Postgres Database
-  postgresqlDatabase: fairwinds_timescale
+  postgresqlDatabase: postgres
+  # -- Password for the Postgres Database
+  password: postgres
   secrets:
     certificateSecretName: fwinsights-timescale-ca
     credentialsSecretName: fwinsights-timescale
@@ -430,15 +491,9 @@ timescale:
     # -- Port of the Timescale Database
     primary:
       port: 5433
-  persistence:
-    # -- Create Persistent Volume with Timescale
-    enabled: true
-  replication:
-    # -- Replicate Timescale data
-    enabled: false
   loadBalancer:
     enabled: false
-    # -- Resources section for Timescale
+  # -- Resources section for Timescale
   resources:
     limits:
       cpu: 1
@@ -515,6 +570,7 @@ cronjobExecutor:
       memory: 3Mi
 
 reportjob:
+  enabled: true
   pdb:
     enabled: true
     minReplicas: 1
@@ -547,7 +603,7 @@ reportjob:
 
 repoScanJob:
   enabled: false
-  insightsCIVersion: "1.2"
+  insightsCIVersion: "2.1"
   hpa:
     enabled: true
     min: 2
